@@ -1,13 +1,13 @@
 /*
- * Firebase connection settings.
- * Paste the values from: Firebase console → Project settings → Your apps → Web app → "SDK setup and configuration" (Config).
- * While apiKey is left as "PASTE_HERE", both pages run in DEMO mode
- * (data is kept only in this browser — good for testing on your computer).
+ * Firebase connection settings (project: meronshoval).
+ * These values are not secret — access is protected by the database rules + login.
  */
 window.FIREBASE_CONFIG = {
-  apiKey: "PASTE_HERE",
-  authDomain: "PASTE_HERE.firebaseapp.com",
-  databaseURL: "https://PASTE_HERE-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "PASTE_HERE",
-  appId: "PASTE_HERE"
+  apiKey: "AIzaSyAjaBAdXdG7hPYK5siIsnyoCVQxP5C6RG4",
+  authDomain: "meronshoval.firebaseapp.com",
+  databaseURL: "https://meronshoval-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "meronshoval",
+  storageBucket: "meronshoval.firebasestorage.app",
+  messagingSenderId: "340683196242",
+  appId: "1:340683196242:web:42d9ef00921d5ac0019c8b"
 };

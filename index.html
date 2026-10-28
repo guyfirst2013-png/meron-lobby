@@ -11,24 +11,33 @@
   :root{
     --ink:#fffaf1; --ink-soft:rgba(255,250,241,.82); --ink-faint:rgba(255,250,241,.6);
     --glass:rgba(18,22,26,.34); --glass-strong:rgba(18,22,26,.55); --line:rgba(255,250,241,.16);
-    --accent:#f2d49b; --s:1;
+    --accent:#f2d49b; --s:1; --veil:0,0,0; --tshadow:0 2px 18px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.4);
   }
+  /* Light theme — used automatically on light backgrounds (e.g. the watercolors) */
+  #stage.light{
+    --ink:#22303a; --ink-soft:rgba(34,48,58,.8); --ink-faint:rgba(34,48,58,.5);
+    --glass:rgba(255,255,255,.52); --line:rgba(34,48,58,.1);
+    --accent:#1f8aa6; --veil:255,255,255; --tshadow:0 1px 14px rgba(255,255,255,.7);
+  }
+  .glass,.item .ic,#info div,#title,#corner,.item h2,.item p{transition:color 1.5s,background-color 1.5s,border-color 1.5s}
   html,body{margin:0;height:100%;background:#1d2622;overflow:hidden;cursor:none}
   body{font-family:Assistant,Rubik,Arial,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
   /* Fixed 1920×1080 stage, scaled to whatever the TV browser reports */
-  #stage{position:absolute;top:0;left:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden}
+  #stage{position:absolute;top:0;left:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;color:var(--ink)}
 
   /* Background: two layers that cross-fade, with a slow gentle zoom */
   .bg{position:absolute;inset:-2%;background-size:cover;background-position:center;opacity:0;transition:opacity 2.5s ease}
   .bg.on{opacity:1}
   .bg.zoom{animation:drift 70s ease-in-out infinite alternate}
   @keyframes drift{from{transform:scale(1)}to{transform:scale(1.06)}}
-  #dim{position:absolute;inset:0;background:
-      radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 0%, rgba(0,0,0,.25) 100%),
-      rgba(0,0,0,var(--dim,.35));transition:background .8s}
+  #dim{position:absolute;inset:0;background:rgba(var(--veil),var(--dim,.2))}
+  #vignette{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 0%, rgba(0,0,0,.25) 100%);transition:opacity 1.5s}
+  #stage.light #vignette{opacity:0}
 
   .hide{display:none!important}
-  .shadow{text-shadow:0 2px 18px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.4)}
+  .shadow{text-shadow:var(--tshadow)}
+  #stage.light .glass{box-shadow:0 8px 30px rgba(34,48,58,.08)}
+  #stage.light .item .ic{background:rgba(31,138,166,.1)}
   .glass{background:var(--glass);border:1px solid var(--line);border-radius:28px}
   @supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
     .glass{-webkit-backdrop-filter:blur(14px) saturate(1.1);backdrop-filter:blur(14px) saturate(1.1)}
@@ -36,7 +45,10 @@
 
   /* Logo — top right */
   #logo{position:absolute;top:48px;right:64px;width:340px;height:170px;display:flex;align-items:flex-start;justify-content:flex-end}
-  #logo img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 4px 16px rgba(0,0,0,.25))}
+  #logo .plate{max-width:100%;max-height:100%;display:flex;border-radius:24px;transition:padding 1.5s,background-color 1.5s}
+  #logo img{max-width:100%;max-height:150px;object-fit:contain;display:block}
+  #stage:not(.light) #logo .plate{background:rgba(255,255,255,.88);padding:16px 22px;box-shadow:0 6px 24px rgba(0,0,0,.2)}
+  #stage:not(.light) #logo img{max-height:120px}
 
   /* Info panel — top left */
   #info{position:absolute;top:40px;left:56px;min-width:400px;max-width:520px;padding:26px 34px 24px}
@@ -89,6 +101,7 @@
   <div class="bg" id="bgA"></div>
   <div class="bg" id="bgB"></div>
   <div id="dim"></div>
+  <div id="vignette"></div>
 
   <div id="logo"></div>
 
@@ -143,6 +156,7 @@
   /* ---------- images ---------- */
   function builtin(id) { for (var i = 0; i < Store.BUILTIN_BG.length; i++) if (Store.BUILTIN_BG[i].id === id) return Store.BUILTIN_BG[i]; return null; }
   function srcFor(id) {
+    if (id === Store.BUILTIN_LOGO.id) return Promise.resolve(Store.BUILTIN_LOGO.src);
     var b = builtin(id); if (b) return Promise.resolve(b.src);
     if (cache[id]) return Promise.resolve(cache[id]);
     return Store.getMedia(id).then(function (d) { if (d) cache[id] = d; return d; });
@@ -170,6 +184,8 @@
       el.style.backgroundImage = 'url("' + src + '")';
       el.classList.remove('zoom'); void el.offsetWidth; el.classList.add('zoom');
       el.classList.add('on'); $(bgFront).classList.remove('on');
+      var b = builtin(id), tone = b ? b.tone : (INDEX[id] && INDEX[id].tone) || 'dark';
+      $('stage').classList.toggle('light', tone === 'light');
       bgFront = back;
     });
   }
@@ -188,12 +204,12 @@
   /* ---------- logo ---------- */
   var logoShown = null;
   function renderLogo() {
-    var on = S.logo.show && S.logo.id && INDEX[S.logo.id];
+    var on = S.logo.show && S.logo.id && (INDEX[S.logo.id] || S.logo.id === Store.BUILTIN_LOGO.id);
     show($('logo'), !!on);
     if (!on) { $('logo').innerHTML = ''; logoShown = null; return; }
     if (logoShown === S.logo.id) return;
     var id = S.logo.id; logoShown = id;
-    srcFor(id).then(function (src) { if (src && logoShown === id) $('logo').innerHTML = '<img alt="" src="' + src + '">'; });
+    srcFor(id).then(function (src) { if (src && logoShown === id) $('logo').innerHTML = '<span class="plate"><img alt="" src="' + src + '"></span>'; });
   }
 
   /* ---------- items with automatic paging ---------- */
@@ -301,7 +317,7 @@
   /* ---------- render all ---------- */
   function render() {
     document.documentElement.style.setProperty('--s', (S.style.scale || 100) / 100);
-    $('dim').style.setProperty('--dim', Math.min(80, Math.max(0, +S.bg.dim)) / 100);
+    $('dim').style.setProperty('--dim', Math.min(70, Math.max(0, +S.bg.dim)) / 100);
     var t = $('title'); t.textContent = S.mainTitle.text || ''; show(t, S.mainTitle.show && !!S.mainTitle.text);
     t.classList.toggle('solo', !(S.items.show));
     var c = $('corner'); c.textContent = S.corner.text || ''; show(c, S.corner.show && !!S.corner.text);

@@ -11,18 +11,24 @@
 (function () {
   'use strict';
 
+  // tone: 'light' backgrounds get dark text, 'dark' backgrounds get light text (chosen automatically on the TV)
   var BUILTIN_BG = [
-    { id: 'builtin-sage', name: 'מרווה', src: 'backgrounds/sage.jpg', thumb: 'backgrounds/sage_thumb.jpg' },
-    { id: 'builtin-dawn', name: 'זריחה', src: 'backgrounds/dawn.jpg', thumb: 'backgrounds/dawn_thumb.jpg' },
-    { id: 'builtin-sea', name: 'ים', src: 'backgrounds/sea.jpg', thumb: 'backgrounds/sea_thumb.jpg' },
-    { id: 'builtin-dusk', name: 'דמדומים', src: 'backgrounds/dusk.jpg', thumb: 'backgrounds/dusk_thumb.jpg' },
-    { id: 'builtin-warm', name: 'חום', src: 'backgrounds/warm.jpg', thumb: 'backgrounds/warm_thumb.jpg' }
+    { id: 'builtin-wc-pink', name: 'ורוד', src: 'BACKGROUNDS/wc-pink.jpg', thumb: 'BACKGROUNDS/wc-pink_thumb.jpg', tone: 'light' },
+    { id: 'builtin-wc-green', name: 'ירוק', src: 'BACKGROUNDS/wc-green.jpg', thumb: 'BACKGROUNDS/wc-green_thumb.jpg', tone: 'light' },
+    { id: 'builtin-wc-pastel', name: 'פסטל', src: 'BACKGROUNDS/wc-pastel.jpg', thumb: 'BACKGROUNDS/wc-pastel_thumb.jpg', tone: 'light' },
+    { id: 'builtin-wc-dreamy', name: 'חלומי', src: 'BACKGROUNDS/wc-dreamy.jpg', thumb: 'BACKGROUNDS/wc-dreamy_thumb.jpg', tone: 'light' },
+    { id: 'builtin-sage', name: 'מרווה', src: 'BACKGROUNDS/sage.jpg', thumb: 'BACKGROUNDS/sage_thumb.jpg', tone: 'dark' },
+    { id: 'builtin-dawn', name: 'זריחה', src: 'BACKGROUNDS/dawn.jpg', thumb: 'BACKGROUNDS/dawn_thumb.jpg', tone: 'dark' },
+    { id: 'builtin-sea', name: 'ים', src: 'BACKGROUNDS/sea.jpg', thumb: 'BACKGROUNDS/sea_thumb.jpg', tone: 'dark' },
+    { id: 'builtin-dusk', name: 'דמדומים', src: 'BACKGROUNDS/dusk.jpg', thumb: 'BACKGROUNDS/dusk_thumb.jpg', tone: 'dark' },
+    { id: 'builtin-warm', name: 'חום', src: 'BACKGROUNDS/warm.jpg', thumb: 'BACKGROUNDS/warm_thumb.jpg', tone: 'dark' }
   ];
+  var BUILTIN_LOGO = { id: 'builtin-logo', src: 'LOGO/logo-web.png' };
 
   var DEFAULTS = {
     mainTitle: { show: true, text: 'ברוכים הבאים' },
     corner: { show: true, text: 'שיהיה יום נפלא' },
-    logo: { show: true, id: '' },
+    logo: { show: true, id: 'builtin-logo' },
     info: {
       show: true, time: true, greg: true, hebrew: true, weather: true, holidays: true,
       city: { name: 'תל אביב', lat: 32.0853, lon: 34.7818 }
@@ -37,10 +43,10 @@
     },
     bg: {
       mode: 'rotate',             // 'single' | 'rotate'
-      selected: 'builtin-sage',
-      rotation: { 'builtin-sage': true, 'builtin-dawn': true, 'builtin-sea': true },
-      interval: 60,               // seconds
-      dim: 35                     // 0-80 (% darkening for readability)
+      selected: 'builtin-wc-pink',
+      rotation: { 'builtin-wc-pink': true, 'builtin-wc-green': true, 'builtin-wc-pastel': true, 'builtin-wc-dreamy': true },
+      interval: 300,              // seconds
+      dim: 20                     // 0-70 (% veil over the background for readability)
     },
     style: { scale: 100 }         // overall text size %
   };
@@ -101,10 +107,10 @@
       getMedia: function (id) {
         return root.child('media/' + id + '/data').once('value').then(function (s) { return s.val(); });
       },
-      addMedia: function (type, data, thumb) {
+      addMedia: function (type, data, thumb, tone) {
         var id = uid(), up = {};
         up['media/' + id] = { data: data };
-        up['mediaIndex/' + id] = { type: type, created: Date.now(), thumb: thumb };
+        up['mediaIndex/' + id] = { type: type, created: Date.now(), thumb: thumb, tone: tone || 'dark' };
         return root.update(up).then(function () { return id; });
       },
       deleteMedia: function (id) {
@@ -148,9 +154,9 @@
       initIfEmpty: function () { if (!read('settings', null)) write('settings', DEFAULTS); return Promise.resolve(); },
       onMediaIndex: function (cb) { listeners.index.push(cb); setTimeout(function () { fire('index'); }, 0); },
       getMedia: function (id) { return Promise.resolve(read('media:' + id, null)); },
-      addMedia: function (type, data, thumb) {
+      addMedia: function (type, data, thumb, tone) {
         var id = uid(); write('media:' + id, data);
-        var ix = read('index', {}); ix[id] = { type: type, created: Date.now(), thumb: thumb };
+        var ix = read('index', {}); ix[id] = { type: type, created: Date.now(), thumb: thumb, tone: tone || 'dark' };
         write('index', ix); fire('index'); return Promise.resolve(id);
       },
       deleteMedia: function (id) {
@@ -167,6 +173,7 @@
   }
 
   Store.BUILTIN_BG = BUILTIN_BG;
+  Store.BUILTIN_LOGO = BUILTIN_LOGO;
   Store.DEFAULTS = DEFAULTS;
   Store.uid = uid;
   window.LobbyStore = Store;

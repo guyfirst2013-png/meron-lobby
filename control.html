@@ -173,6 +173,7 @@
           <div style="flex:1;display:flex;flex-direction:column;gap:8px">
             <label class="btn ghost"><input type="file" id="logoFile" accept="image/*" class="hide">החלפת לוגו</label>
             <button class="btn danger" id="logoDel">הסרת לוגו</button>
+            <button class="btn ghost" id="logoReset">חזרה ללוגו המקורי</button>
           </div>
         </div>
       </div>
@@ -205,8 +206,8 @@
       <div class="card">
         <div class="row" id="intRow"><span class="lbl">החלפה כל<span class="sub">דקות</span></span>
           <input type="range" id="bgInt" min="1" max="30" step="1" style="width:45%"><span class="rangeval" id="bgIntV"></span></div>
-        <div class="row"><span class="lbl">הכהיית הרקע<span class="sub">לקריאות טובה יותר של הטקסט</span></span>
-          <input type="range" id="bgDim" min="0" max="70" step="5" style="width:45%"><span class="rangeval" id="bgDimV"></span></div>
+        <div class="row"><span class="lbl">ריכוך הרקע<span class="sub">לקריאות טובה יותר של הטקסט</span></span>
+          <input type="range" id="bgDim" min="0" max="60" step="5" style="width:45%"><span class="rangeval" id="bgDimV"></span></div>
       </div>
     </section>
 
@@ -327,6 +328,14 @@
     c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
     return c.toDataURL(type, q);
   }
+  // average brightness → 'light' (dark text on screen) or 'dark' (light text)
+  function toneOf(im) {
+    var c = document.createElement('canvas'); c.width = 32; c.height = 18;
+    var x = c.getContext('2d'); x.drawImage(im, 0, 0, 32, 18);
+    var d = x.getImageData(0, 0, 32, 18).data, sum = 0;
+    for (var i = 0; i < d.length; i += 4) sum += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+    return sum / (d.length / 4) > 150 ? 'light' : 'dark';
+  }
   function busy(on, msg) { $('busy').textContent = msg || 'מעלה תמונות…'; $('busy').classList.toggle('hide', !on); }
 
   /* ---------- logo (single image, like a profile picture) ---------- */
@@ -345,13 +354,19 @@
       .catch(function (err) { busy(false); alert('לא הצלחנו להעלות את התמונה. נסו קובץ אחר.'); console.error(err); });
   });
   $('logoDel').addEventListener('click', function () {
-    if (!S.logo.id || !confirm('להסיר את הלוגו?')) return;
-    var id = S.logo.id; save('logo/id', '').then(function () { Store.deleteMedia(id); });
+    if (!S.logo.id || !confirm('להסיר את הלוגו מהמסך?')) return;
+    var id = S.logo.id; save('logo/id', '').then(function () { if (INDEX[id]) Store.deleteMedia(id); });
+  });
+  $('logoReset').addEventListener('click', function () {
+    var old = S.logo.id;
+    save('logo/id', Store.BUILTIN_LOGO.id).then(function () { if (old && INDEX[old]) Store.deleteMedia(old); });
   });
   function renderLogo() {
-    var e = INDEX[S.logo.id];
-    $('logoPrev').innerHTML = e && e.thumb ? '<img alt="" src="' + e.thumb + '">' : '<span style="color:#9aa39f;font-size:13px">אין לוגו</span>';
-    $('logoDel').disabled = !e;
+    var isB = S.logo.id === Store.BUILTIN_LOGO.id, e = INDEX[S.logo.id];
+    var src = isB ? Store.BUILTIN_LOGO.src : (e && e.thumb);
+    $('logoPrev').innerHTML = src ? '<img alt="" src="' + src + '">' : '<span style="color:#9aa39f;font-size:13px">אין לוגו</span>';
+    $('logoDel').classList.toggle('hide', !src);
+    $('logoReset').classList.toggle('hide', isB);
   }
 
   /* ---------- items ---------- */
@@ -469,7 +484,7 @@
     var id = t.getAttribute('data-id');
     if (e.target.closest('[data-del]')) {
       if (!confirm('למחוק את התמונה לצמיתות?')) return;
-      if (S.bg.selected === id) Store.set('bg/selected', 'builtin-sage');
+      if (S.bg.selected === id) Store.set('bg/selected', Store.BUILTIN_BG[0].id);
       Store.deleteMedia(id).then(function () { toast('נמחק ✓'); });
       return;
     }
@@ -487,7 +502,7 @@
     files.reduce(function (p, f) {
       return p.then(function () {
         return loadImg(f).then(function (im) {
-          return Store.addMedia('bg', toData(im, 1920, 1080, 'image/jpeg', 0.82), toData(im, 400, 225, 'image/jpeg', 0.7));
+          return Store.addMedia('bg', toData(im, 1920, 1080, 'image/jpeg', 0.82), toData(im, 400, 225, 'image/jpeg', 0.7), toneOf(im));
         }).then(function (id) {
           done++; busy(true, 'מעלה תמונה ' + Math.min(done + 1, files.length) + ' מתוך ' + files.length + '…');
           // new uploads join the rotation automatically; in single mode the last one becomes the background

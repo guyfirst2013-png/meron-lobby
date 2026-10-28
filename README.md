@@ -74,7 +74,9 @@ It opens full screen with its own icon, like a normal app.
 - **Backgrounds tab:** choose a fixed background or a rotating one, upload photos from the phone (several at once), delete unwanted ones, set the rotation interval and how much to darken the background.
 - **Info tab:** choose which parts of the date panel to show (time, civil date, Hebrew date, weather, holidays and weekly Torah portion), pick the weather city, and adjust overall text size.
 
-Five calm built-in backgrounds (in `backgrounds/`) are always available and can't be deleted.
+Built-in backgrounds (in `BACKGROUNDS/`: your four watercolors plus five darker ones) are always available and can't be deleted. Text turns dark on light backgrounds and light on dark ones automatically — uploaded photos are measured on the phone. The default logo is `LOGO/logo-web.png`.
+
+**Adding a built-in background yourself:** resize to 1920×1080 JPG (~300 KB), put it in `BACKGROUNDS/`, and add a line to `BUILTIN_BG` in `js/store.js`. Original multi‑MB photos don't need to go to GitHub.
 
 ## Files
 
@@ -85,7 +87,8 @@ js/firebase-config.js  ← paste your Firebase settings here
 js/store.js            data layer (Firebase / demo)
 js/info.js             Hebrew date, holidays (Hebcal), weather (Open-Meteo)
 js/icons.js            message icons
-backgrounds/           built-in backgrounds
+BACKGROUNDS/           built-in backgrounds (web-sized)
+LOGO/                  default logo
 database.rules.json    security rules to paste into Firebase
 manifest.webmanifest, sw.js, icons/   make the phone app installable
 ```
