@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2f4a40">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="מסך לובי">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
+<title>שליטה במסך הלובי</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme:light;
+    --bg:#f3f0ea; --card:#fffdf9; --ink:#1f2a26; --soft:#5e6b66; --faint:#9aa39f; --line:#e4dfd5;
+    --brand:#2f4a40; --brand-2:#3f6656; --tint:#e6eee9; --warn:#b5482f; --gold:#c9963d;
+    --r:18px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Assistant,system-ui,sans-serif;font-size:17px}
+  button,input,textarea,select{font:inherit;color:inherit}
+  .hide{display:none!important}
+
+  header{position:sticky;top:0;z-index:5;background:var(--brand);color:#fff;padding:calc(env(safe-area-inset-top) + 14px) 18px 14px;
+    display:flex;align-items:center;gap:12px}
+  header h1{margin:0;font-size:20px;font-weight:800;flex:1}
+  header .dot{width:10px;height:10px;border-radius:50%;background:#7fd1a5;box-shadow:0 0 0 3px rgba(127,209,165,.25)}
+  header .dot.off{background:#e98a72;box-shadow:0 0 0 3px rgba(233,138,114,.25)}
+  header a{color:#fff;opacity:.9;text-decoration:none;font-weight:700;font-size:15px;border:1px solid rgba(255,255,255,.35);padding:6px 12px;border-radius:999px}
+  #demoBar{background:#fff4dc;color:#7a5512;font-size:14px;padding:8px 16px;text-align:center;border-bottom:1px solid #f0dfb5}
+
+  main{padding:16px 14px calc(96px + env(safe-area-inset-bottom));max-width:640px;margin:0 auto}
+  section.tab{display:none} section.tab.on{display:block}
+  h2.sec{font-size:15px;font-weight:800;color:var(--soft);margin:22px 6px 10px;letter-spacing:.2px}
+  h2.sec:first-child{margin-top:4px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:4px 16px;margin-bottom:12px}
+  .row{display:flex;align-items:center;gap:12px;min-height:56px;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:0}
+  .row .lbl{flex:1;font-weight:700}
+  .row .sub{display:block;font-weight:400;color:var(--soft);font-size:14px}
+  .field{padding:12px 0;border-bottom:1px solid var(--line)} .field:last-child{border-bottom:0}
+  .field label{display:block;font-weight:700;margin-bottom:6px}
+  input[type=text],input[type=search],input[type=email],input[type=password],textarea{width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;font-size:17px;outline:none}
+  input:focus,textarea:focus{border-color:var(--brand-2);box-shadow:0 0 0 3px var(--tint)}
+  textarea{min-height:92px;resize:vertical;line-height:1.4}
+
+  /* switch */
+  .sw{position:relative;width:52px;height:32px;flex:none}
+  .sw input{opacity:0;position:absolute;inset:0;margin:0;cursor:pointer;z-index:1}
+  .sw span{position:absolute;inset:0;border-radius:999px;background:#cfd5d2;transition:.2s}
+  .sw span:after{content:"";position:absolute;top:3px;right:3px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.2s}
+  .sw input:checked+span{background:var(--brand-2)}
+  .sw input:checked+span:after{right:23px}
+
+  .btn{border:0;border-radius:12px;padding:12px 16px;font-weight:800;background:var(--brand);color:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+  .btn.ghost{background:var(--tint);color:var(--brand)}
+  .btn.danger{background:#fbeae5;color:var(--warn)}
+  .btn.block{width:100%}
+  .btn:active{transform:scale(.98)}
+  .iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+  .iconbtn svg{width:20px;height:20px}
+  .iconbtn:disabled{opacity:.35}
+
+  .seg{display:flex;background:var(--tint);border-radius:12px;padding:4px;gap:4px}
+  .seg button{flex:1;border:0;background:transparent;border-radius:9px;padding:10px;font-weight:800;color:var(--brand)}
+  .seg button.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  input[type=range]{width:100%;accent-color:var(--brand-2)}
+  .rangeval{font-weight:800;color:var(--brand);min-width:56px;text-align:left}
+
+  /* items */
+  .item{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:12px;overflow:hidden}
+  .item.off{opacity:.6}
+  .item .head{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer}
+  .item .ic{width:42px;height:42px;border-radius:12px;background:var(--tint);color:var(--brand);display:flex;align-items:center;justify-content:center;flex:none}
+  .item .ic svg{width:24px;height:24px}
+  .item .nm{flex:1;min-width:0}
+  .item .nm b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item .nm small{display:block;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item .body{padding:0 14px 14px;border-top:1px solid var(--line)}
+  .icons{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:8px}
+  .icons button{height:48px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--brand);display:flex;align-items:center;justify-content:center}
+  .icons button svg{width:24px;height:24px}
+  .icons button.on{border-color:var(--brand-2);background:var(--tint);box-shadow:0 0 0 2px var(--brand-2) inset}
+  .icons .none{font-size:13px;font-weight:700;color:var(--soft)}
+  .item .actions{display:flex;gap:8px;margin-top:12px;align-items:center}
+  .item .actions .grow{flex:1}
+
+  /* gallery */
+  .gal{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .tile{position:relative;border-radius:14px;overflow:hidden;aspect-ratio:16/9;background:#ddd;border:3px solid transparent;cursor:pointer}
+  .tile img{width:100%;height:100%;object-fit:cover;display:block}
+  .tile.on{border-color:var(--gold)}
+  .tile .chk{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.35);border:2px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff}
+  .tile.on .chk{background:var(--gold)}
+  .tile .chk svg{width:16px;height:16px;opacity:0} .tile.on .chk svg{opacity:1}
+  .tile .del{position:absolute;bottom:6px;left:6px;width:34px;height:34px;border-radius:10px;border:0;background:rgba(255,255,255,.9);color:var(--warn);display:flex;align-items:center;justify-content:center}
+  .tile .del svg{width:18px;height:18px}
+  .tile .tag{position:absolute;bottom:6px;right:8px;color:#fff;font-size:13px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+  .upload{border:2px dashed #c8c2b5;border-radius:14px;aspect-ratio:16/9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--brand);font-weight:800;cursor:pointer;background:#faf8f3}
+  .upload svg{width:28px;height:28px}
+  .hint{color:var(--soft);font-size:14px;margin:8px 6px 0;line-height:1.4}
+
+  .logoBox{display:flex;gap:14px;align-items:center;padding:14px 0}
+  .logoPrev{width:110px;height:72px;border-radius:12px;background:repeating-conic-gradient(#eee 0 25%,#fff 0 50%) 0 0/16px 16px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none}
+  .logoPrev img{max-width:100%;max-height:100%}
+
+  .cities{margin-top:8px}
+  .cities button{display:block;width:100%;text-align:right;border:0;border-bottom:1px solid var(--line);background:none;padding:12px 4px}
+  .cities button small{color:var(--soft)}
+
+  nav{position:fixed;bottom:0;left:0;right:0;z-index:5;background:rgba(255,253,249,.96);border-top:1px solid var(--line);
+    display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+  nav button{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;color:var(--faint);font-weight:800;font-size:13px}
+  nav button svg{width:24px;height:24px}
+  nav button.on{color:var(--brand)}
+
+  #toast{position:fixed;top:calc(env(safe-area-inset-top) + 70px);left:50%;transform:translateX(-50%) translateY(-12px);background:var(--ink);color:#fff;
+    padding:8px 16px;border-radius:999px;font-weight:800;font-size:14px;opacity:0;transition:.25s;z-index:9;pointer-events:none}
+  #toast.on{opacity:1;transform:translateX(-50%)}
+  #busy{position:fixed;inset:0;background:rgba(31,42,38,.45);z-index:20;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px}
+
+  /* login */
+  #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+  #login .box{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:28px 22px;width:100%;max-width:380px}
+  #login h1{margin:0 0 4px;font-size:24px} #login p{margin:0 0 18px;color:var(--soft)}
+  #login .field{border:0;padding:6px 0}
+  #loginErr{color:var(--warn);font-weight:700;min-height:22px;margin:6px 0}
+</style>
+</head>
+<body>
+
+<div id="login" class="hide">
+  <form class="box" id="loginForm">
+    <h1>מסך הלובי</h1>
+    <p>התחברות לניהול התוכן במסך</p>
+    <div class="field"><label for="em">אימייל</label><input id="em" type="email" autocomplete="username" required dir="ltr"></div>
+    <div class="field"><label for="pw">סיסמה</label><input id="pw" type="password" autocomplete="current-password" required dir="ltr"></div>
+    <div id="loginErr"></div>
+    <button class="btn block" type="submit">כניסה</button>
+  </form>
+</div>
+
+<div id="app" class="hide">
+  <header>
+    <span class="dot" id="conn" title="חיבור"></span>
+    <h1>שליטה במסך הלובי</h1>
+    <a href="index.html" target="_blank" rel="noopener">צפייה במסך</a>
+  </header>
+  <div id="demoBar" class="hide">מצב הדגמה – השינויים נשמרים רק בדפדפן הזה. פתחו את המסך בלשונית נוספת כדי לראות אותם.</div>
+
+  <main>
+    <!-- TAB: screen -->
+    <section class="tab on" id="t-screen">
+      <h2 class="sec">מה מוצג על המסך</h2>
+      <div class="card" id="visList"></div>
+
+      <h2 class="sec">כותרת ראשית</h2>
+      <div class="card"><div class="field"><input type="text" id="mainTitle" placeholder="לדוגמה: ברוכים הבאים"></div></div>
+
+      <h2 class="sec">כותרת פינתית (למטה מימין)</h2>
+      <div class="card"><div class="field"><input type="text" id="cornerText" placeholder="לדוגמה: שבת שלום!"></div></div>
+
+      <h2 class="sec">לוגו</h2>
+      <div class="card">
+        <div class="logoBox">
+          <div class="logoPrev" id="logoPrev"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+            <label class="btn ghost"><input type="file" id="logoFile" accept="image/*" class="hide">החלפת לוגו</label>
+            <button class="btn danger" id="logoDel">הסרת לוגו</button>
+          </div>
+        </div>
+      </div>
+      <p class="hint">מומלץ קובץ PNG עם רקע שקוף.</p>
+    </section>
+
+    <!-- TAB: items -->
+    <section class="tab" id="t-items">
+      <h2 class="sec">הודעות על המסך</h2>
+      <div id="itemList"></div>
+      <button class="btn block" id="addItem"><span id="plusIc"></span>הוספת הודעה</button>
+      <h2 class="sec">החלפת עמודים</h2>
+      <div class="card">
+        <div class="row"><span class="lbl">כשיש הרבה הודעות, כל עמוד מוצג<span class="sub">שניות</span></span>
+          <input type="range" id="pageSec" min="6" max="60" step="1" style="width:45%"><span class="rangeval" id="pageSecV"></span></div>
+      </div>
+      <p class="hint">הודעות שלא נכנסות במסך אחד מתחלקות אוטומטית לעמודים שמתחלפים.</p>
+    </section>
+
+    <!-- TAB: backgrounds -->
+    <section class="tab" id="t-bg">
+      <h2 class="sec">אופן הצגת הרקע</h2>
+      <div class="seg" id="bgMode"><button data-v="single">רקע קבוע</button><button data-v="rotate">רקע מתחלף</button></div>
+      <p class="hint" id="bgModeHint"></p>
+
+      <h2 class="sec">גלריית רקעים</h2>
+      <div class="gal" id="gallery"></div>
+
+      <h2 class="sec">התאמות</h2>
+      <div class="card">
+        <div class="row" id="intRow"><span class="lbl">החלפה כל<span class="sub">דקות</span></span>
+          <input type="range" id="bgInt" min="1" max="30" step="1" style="width:45%"><span class="rangeval" id="bgIntV"></span></div>
+        <div class="row"><span class="lbl">הכהיית הרקע<span class="sub">לקריאות טובה יותר של הטקסט</span></span>
+          <input type="range" id="bgDim" min="0" max="70" step="5" style="width:45%"><span class="rangeval" id="bgDimV"></span></div>
+      </div>
+    </section>
+
+    <!-- TAB: info -->
+    <section class="tab" id="t-info">
+      <h2 class="sec">פאנל מידע (למעלה משמאל)</h2>
+      <div class="card" id="infoList"></div>
+
+      <h2 class="sec">עיר למזג האוויר</h2>
+      <div class="card"><div class="field">
+        <input type="search" id="citySearch" placeholder="חיפוש עיר…">
+        <div class="cities" id="cityResults"></div>
+        <p class="hint" style="margin:8px 0 0">כרגע: <b id="cityNow"></b></p>
+      </div></div>
+
+      <h2 class="sec">גודל טקסט במסך</h2>
+      <div class="card">
+        <div class="row"><span class="lbl">גודל כללי</span>
+          <input type="range" id="scale" min="80" max="125" step="5" style="width:50%"><span class="rangeval" id="scaleV"></span></div>
+      </div>
+
+      <div style="margin-top:28px" id="logoutWrap"><button class="btn ghost block" id="logout">התנתקות</button></div>
+    </section>
+  </main>
+
+  <nav>
+    <button data-tab="t-screen" class="on"><span data-ic="screen"></span>מסך</button>
+    <button data-tab="t-items"><span data-ic="list"></span>הודעות</button>
+    <button data-tab="t-bg"><span data-ic="image"></span>רקעים</button>
+    <button data-tab="t-info"><span data-ic="info"></span>מידע</button>
+  </nav>
+</div>
+
+<div id="toast"></div>
+<div id="busy" class="hide">מעלה תמונות…</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/store.js"></script>
+<script src="js/info.js"></script>
+<script src="js/icons.js"></script>
+<script>
+(function () {
+  'use strict';
+  var Store = window.LobbyStore, Info = window.LobbyInfo, Icons = window.LobbyIcons;
+  var $ = function (id) { return document.getElementById(id); };
+  var S = null, INDEX = {}, openItem = null;
+
+  var UI = {
+    screen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
+    list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>',
+    image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>',
+    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>',
+    plus: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+    up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>',
+    down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
+  };
+  [].forEach.call(document.querySelectorAll('[data-ic]'), function (el) { el.innerHTML = UI[el.getAttribute('data-ic')]; });
+  $('plusIc').innerHTML = UI.plus;
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var toastT;
+  function toast(msg) { var t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove('on'); }, 1400); }
+  function save(path, val, quiet) {
+    return Store.set(path, val).then(function () { if (!quiet) toast('נשמר ✓'); })
+      .catch(function (e) { toast('שגיאה בשמירה'); console.error(e); });
+  }
+  function sw(id, checked) { return '<label class="sw"><input type="checkbox" data-k="' + id + '"' + (checked ? ' checked' : '') + '><span></span></label>'; }
+  function focused(el) { return document.activeElement === el; }
+
+  /* ---------- tabs ---------- */
+  [].forEach.call(document.querySelectorAll('nav button'), function (b) {
+    b.addEventListener('click', function () {
+      [].forEach.call(document.querySelectorAll('nav button'), function (x) { x.classList.toggle('on', x === b); });
+      [].forEach.call(document.querySelectorAll('section.tab'), function (s) { s.classList.toggle('on', s.id === b.getAttribute('data-tab')); });
+      window.scrollTo(0, 0);
+    });
+  });
+
+  /* ---------- visibility (global show/hide per object) ---------- */
+  var VIS = [
+    ['logo/show', 'לוגו'], ['info/show', 'פאנל תאריך ומזג אוויר'], ['mainTitle/show', 'כותרת ראשית'],
+    ['items/show', 'הודעות'], ['corner/show', 'כותרת פינתית']
+  ];
+  function get(path) { return path.split('/').reduce(function (o, k) { return o ? o[k] : undefined; }, S); }
+  function renderSwitchList(el, list) {
+    el.innerHTML = list.map(function (v) { return '<div class="row"><span class="lbl">' + v[1] + '</span>' + sw(v[0], get(v[0])) + '</div>'; }).join('');
+  }
+  function bindSwitches(el) {
+    el.addEventListener('change', function (e) { var k = e.target.getAttribute('data-k'); if (k) save(k, e.target.checked); });
+  }
+  bindSwitches($('visList'));
+
+  /* ---------- text fields with debounce ---------- */
+  function bindText(el, path) {
+    var t;
+    el.addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { save(path, el.value.trim()); }, 700); });
+    el.addEventListener('blur', function () { clearTimeout(t); if (el.value.trim() !== get(path)) save(path, el.value.trim()); });
+  }
+  bindText($('mainTitle'), 'mainTitle/text');
+  bindText($('cornerText'), 'corner/text');
+
+  /* ---------- image processing (resize on the phone before upload) ---------- */
+  function loadImg(file) {
+    return new Promise(function (res, rej) {
+      var url = URL.createObjectURL(file), im = new Image();
+      im.onload = function () { res(im); }; im.onerror = function () { rej(new Error('bad image')); }; im.src = url;
+    });
+  }
+  function toData(im, maxW, maxH, type, q) {
+    var k = Math.min(1, maxW / im.naturalWidth, maxH / im.naturalHeight);
+    var c = document.createElement('canvas');
+    c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+    c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+    return c.toDataURL(type, q);
+  }
+  function busy(on, msg) { $('busy').textContent = msg || 'מעלה תמונות…'; $('busy').classList.toggle('hide', !on); }
+
+  /* ---------- logo (single image, like a profile picture) ---------- */
+  $('logoFile').addEventListener('change', function (e) {
+    var f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    busy(true, 'מעלה לוגו…');
+    var old = S.logo.id;
+    loadImg(f).then(function (im) {
+      return Store.addMedia('logo', toData(im, 800, 400, 'image/png'), toData(im, 220, 140, 'image/png'));
+    }).then(function (id) {
+      return Store.set('logo/id', id).then(function () {
+        if (old && INDEX[old]) Store.deleteMedia(old);
+        return Store.set('logo/show', true);
+      });
+    }).then(function () { busy(false); toast('הלוגו עודכן ✓'); })
+      .catch(function (err) { busy(false); alert('לא הצלחנו להעלות את התמונה. נסו קובץ אחר.'); console.error(err); });
+  });
+  $('logoDel').addEventListener('click', function () {
+    if (!S.logo.id || !confirm('להסיר את הלוגו?')) return;
+    var id = S.logo.id; save('logo/id', '').then(function () { Store.deleteMedia(id); });
+  });
+  function renderLogo() {
+    var e = INDEX[S.logo.id];
+    $('logoPrev').innerHTML = e && e.thumb ? '<img alt="" src="' + e.thumb + '">' : '<span style="color:#9aa39f;font-size:13px">אין לוגו</span>';
+    $('logoDel').disabled = !e;
+  }
+
+  /* ---------- items ---------- */
+  function itemsArr() {
+    var l = S.items.list || {};
+    return Object.keys(l).map(function (k) { var o = l[k]; o._id = k; return o; }).sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+  }
+  function renderItems() {
+    var box = $('itemList');
+    if (box.contains(document.activeElement) && document.activeElement.tagName !== 'BUTTON') return; // don't disturb typing
+    var arr = itemsArr();
+    if (!arr.length) { box.innerHTML = '<p class="hint" style="margin:0 6px 14px">אין הודעות עדיין. לחצו על "הוספת הודעה".</p>'; return; }
+    box.innerHTML = arr.map(function (it, i) {
+      var open = openItem === it._id;
+      return '<div class="item' + (it.show === false ? ' off' : '') + '" data-id="' + it._id + '">' +
+        '<div class="head" data-act="toggle"><div class="ic">' + (Icons.svg(it.icon) || '') + '</div>' +
+        '<div class="nm"><b>' + (esc(it.title) || '<span style="color:#9aa39f">ללא כותרת</span>') + '</b><small>' + esc(it.body) + '</small></div>' +
+        sw('show', it.show !== false) + '</div>' +
+        (open ? '<div class="body">' +
+          '<div class="field"><label>כותרת</label><input type="text" data-f="title" value="' + esc(it.title) + '"></div>' +
+          '<div class="field"><label>תוכן</label><textarea data-f="body">' + esc(it.body) + '</textarea></div>' +
+          '<div class="field"><label>אייקון</label><div class="icons"><button data-icon="" class="none' + (!it.icon ? ' on' : '') + '">ללא</button>' +
+            Icons.keys.map(function (k) { return '<button data-icon="' + k + '" title="' + Icons.names[k] + '"' + (it.icon === k ? ' class="on"' : '') + '>' + Icons.svg(k) + '</button>'; }).join('') +
+          '</div></div>' +
+          '<div class="actions"><button class="iconbtn" data-act="up"' + (i === 0 ? ' disabled' : '') + '>' + UI.up + '</button>' +
+          '<button class="iconbtn" data-act="down"' + (i === arr.length - 1 ? ' disabled' : '') + '>' + UI.down + '</button>' +
+          '<span class="grow"></span><button class="btn danger" data-act="del">' + UI.trash.replace('<svg', '<svg width="18" height="18"') + 'מחיקה</button></div>' +
+        '</div>' : '') + '</div>';
+    }).join('');
+  }
+  var itemTimers = {};
+  $('itemList').addEventListener('input', function (e) {
+    var f = e.target.getAttribute('data-f'); if (!f) return;
+    var id = e.target.closest('.item').getAttribute('data-id'), el = e.target, key = id + f;
+    clearTimeout(itemTimers[key]);
+    itemTimers[key] = setTimeout(function () { save('items/list/' + id + '/' + f, el.value); }, 700);
+    // live-update the collapsed header text
+    var head = el.closest('.item').querySelector(f === 'title' ? '.nm b' : '.nm small'); if (head) head.textContent = el.value;
+  });
+  $('itemList').addEventListener('change', function (e) {
+    if (e.target.getAttribute('data-k') !== 'show') return;
+    var id = e.target.closest('.item').getAttribute('data-id');
+    save('items/list/' + id + '/show', e.target.checked);
+  });
+  $('itemList').addEventListener('click', function (e) {
+    if (e.target.closest('.sw')) return;
+    var itemEl = e.target.closest('.item'); if (!itemEl) return;
+    var id = itemEl.getAttribute('data-id');
+    var ic = e.target.closest('[data-icon]');
+    if (ic) { save('items/list/' + id + '/icon', ic.getAttribute('data-icon')); return; }
+    var a = e.target.closest('[data-act]'); if (!a) return;
+    var act = a.getAttribute('data-act');
+    if (act === 'toggle') { flushItemTimers(); openItem = openItem === id ? null : id; renderItems(); return; }
+    if (act === 'del') {
+      if (!confirm('למחוק את ההודעה?')) return;
+      if (openItem === id) openItem = null;
+      document.activeElement && document.activeElement.blur();
+      save('items/list/' + id, null); return;
+    }
+    if (act === 'up' || act === 'down') {
+      var arr = itemsArr(), i = arr.findIndex(function (x) { return x._id === id; }), j = act === 'up' ? i - 1 : i + 1;
+      if (j < 0 || j >= arr.length) return;
+      var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+      var up = {}; arr.forEach(function (x, n) { up[x._id] = n + 1; });
+      Promise.all(Object.keys(up).map(function (k) { return Store.set('items/list/' + k + '/order', up[k]); })).then(function () { toast('הסדר עודכן ✓'); });
+    }
+  });
+  function flushItemTimers() {
+    // save any pending typing immediately before collapsing
+    [].forEach.call(document.querySelectorAll('#itemList [data-f]'), function (el) {
+      var id = el.closest('.item').getAttribute('data-id'), f = el.getAttribute('data-f');
+      if (itemTimers[id + f]) { clearTimeout(itemTimers[id + f]); delete itemTimers[id + f]; Store.set('items/list/' + id + '/' + f, el.value); }
+    });
+    if (document.activeElement) document.activeElement.blur();
+  }
+  $('addItem').addEventListener('click', function () {
+    flushItemTimers();
+    var arr = itemsArr(), id = Store.uid();
+    var max = arr.reduce(function (m, x) { return Math.max(m, x.order || 0); }, 0);
+    openItem = id;
+    Store.set('items/list/' + id, { order: max + 1, show: true, icon: 'info', title: '', body: '' }).then(function () {
+      setTimeout(function () { var el = document.querySelector('[data-id="' + id + '"] input[data-f=title]'); if (el) { el.focus(); el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } }, 60);
+    });
+  });
+  function bindRange(el, out, path, fmt, toVal) {
+    el.addEventListener('input', function () { out.textContent = fmt(+el.value); });
+    el.addEventListener('change', function () { save(path, toVal ? toVal(+el.value) : +el.value); });
+  }
+  bindRange($('pageSec'), $('pageSecV'), 'items/pageSeconds', function (v) { return v + ' שנ׳'; });
+
+  /* ---------- backgrounds ---------- */
+  [].forEach.call($('bgMode').children, function (b) { b.addEventListener('click', function () { save('bg/mode', b.getAttribute('data-v')); }); });
+  bindRange($('bgInt'), $('bgIntV'), 'bg/interval', function (v) { return v + ' דק׳'; }, function (v) { return v * 60; });
+  bindRange($('bgDim'), $('bgDimV'), 'bg/dim', function (v) { return v + '%'; });
+
+  function bgEntries() {
+    var arr = Store.BUILTIN_BG.map(function (b) { return { id: b.id, thumb: b.thumb, name: b.name, builtin: true }; });
+    Object.keys(INDEX).filter(function (id) { return INDEX[id].type === 'bg'; })
+      .sort(function (a, b) { return INDEX[b].created - INDEX[a].created; })
+      .forEach(function (id) { arr.unshift({ id: id, thumb: INDEX[id].thumb }); });
+    return arr;
+  }
+  function renderGallery() {
+    var single = S.bg.mode === 'single', rot = S.bg.rotation || {};
+    $('gallery').innerHTML = '<label class="upload"><input type="file" id="bgFiles" accept="image/*" multiple class="hide">' + UI.plus + 'העלאת תמונות</label>' +
+      bgEntries().map(function (b) {
+        var on = single ? S.bg.selected === b.id : !!rot[b.id];
+        return '<div class="tile' + (on ? ' on' : '') + '" data-id="' + b.id + '"><img alt="" src="' + b.thumb + '"><span class="chk">' + UI.check + '</span>' +
+          (b.builtin ? '<span class="tag">' + b.name + '</span>' : '<button class="del" data-del="1" aria-label="מחיקה">' + UI.trash + '</button>') + '</div>';
+      }).join('');
+    $('bgFiles').addEventListener('change', uploadBgs);
+  }
+  $('gallery').addEventListener('click', function (e) {
+    var t = e.target.closest('.tile'); if (!t) return;
+    var id = t.getAttribute('data-id');
+    if (e.target.closest('[data-del]')) {
+      if (!confirm('למחוק את התמונה לצמיתות?')) return;
+      if (S.bg.selected === id) Store.set('bg/selected', 'builtin-sage');
+      Store.deleteMedia(id).then(function () { toast('נמחק ✓'); });
+      return;
+    }
+    if (S.bg.mode === 'single') save('bg/selected', id);
+    else {
+      var rot = S.bg.rotation || {}, count = Object.keys(rot).filter(function (k) { return rot[k]; }).length;
+      if (rot[id] && count <= 1) { toast('צריך לפחות רקע אחד'); return; }
+      save('bg/rotation/' + id, rot[id] ? null : true);
+    }
+  });
+  function uploadBgs(e) {
+    var files = [].slice.call(e.target.files); e.target.value = '';
+    if (!files.length) return;
+    var done = 0; busy(true, 'מעלה תמונה 1 מתוך ' + files.length + '…');
+    files.reduce(function (p, f) {
+      return p.then(function () {
+        return loadImg(f).then(function (im) {
+          return Store.addMedia('bg', toData(im, 1920, 1080, 'image/jpeg', 0.82), toData(im, 400, 225, 'image/jpeg', 0.7));
+        }).then(function (id) {
+          done++; busy(true, 'מעלה תמונה ' + Math.min(done + 1, files.length) + ' מתוך ' + files.length + '…');
+          // new uploads join the rotation automatically; in single mode the last one becomes the background
+          return S.bg.mode === 'single' ? Store.set('bg/selected', id) : Store.set('bg/rotation/' + id, true);
+        }).catch(function (err) { console.error(err); });
+      });
+    }, Promise.resolve()).then(function () { busy(false); toast(done === 1 ? 'התמונה הועלתה ✓' : done + ' תמונות הועלו ✓'); });
+  }
+
+  /* ---------- info panel ---------- */
+  var INFO = [['info/time', 'שעה'], ['info/greg', 'תאריך לועזי'], ['info/hebrew', 'תאריך עברי'], ['info/weather', 'מזג אוויר'], ['info/holidays', 'חגים ופרשת השבוע']];
+  bindSwitches($('infoList'));
+  var cityT;
+  $('citySearch').addEventListener('input', function () {
+    var q = this.value.trim(); clearTimeout(cityT);
+    if (q.length < 2) { $('cityResults').innerHTML = ''; return; }
+    cityT = setTimeout(function () {
+      Info.searchCity(q).then(function (list) {
+        $('cityResults').innerHTML = list.length ? list.map(function (c, i) {
+          return '<button data-i="' + i + '">' + esc(c.name) + ' <small>' + esc(c.region) + '</small></button>';
+        }).join('') : '<p class="hint">לא נמצאו תוצאות</p>';
+        $('cityResults').onclick = function (e) {
+          var b = e.target.closest('button'); if (!b) return;
+          var c = list[+b.getAttribute('data-i')];
+          save('info/city', { name: c.name, lat: c.lat, lon: c.lon });
+          $('cityResults').innerHTML = ''; $('citySearch').value = '';
+        };
+      }).catch(function () { $('cityResults').innerHTML = '<p class="hint">אין חיבור לשירות מזג האוויר</p>'; });
+    }, 400);
+  });
+  bindRange($('scale'), $('scaleV'), 'style/scale', function (v) { return v + '%'; });
+
+  /* ---------- render ---------- */
+  function setRange(el, out, val, fmt) { if (!focused(el)) { el.value = val; out.textContent = fmt(val); } }
+  function render() {
+    renderSwitchList($('visList'), VIS);
+    renderSwitchList($('infoList'), INFO);
+    if (!focused($('mainTitle'))) $('mainTitle').value = S.mainTitle.text || '';
+    if (!focused($('cornerText'))) $('cornerText').value = S.corner.text || '';
+    renderItems();
+    setRange($('pageSec'), $('pageSecV'), S.items.pageSeconds || 15, function (v) { return v + ' שנ׳'; });
+    [].forEach.call($('bgMode').children, function (b) { b.classList.toggle('on', b.getAttribute('data-v') === S.bg.mode); });
+    $('bgModeHint').textContent = S.bg.mode === 'single' ? 'לחצו על תמונה כדי לקבוע אותה כרקע.' : 'סמנו את התמונות שישתתפו בהחלפה.';
+    $('intRow').classList.toggle('hide', S.bg.mode === 'single');
+    setRange($('bgInt'), $('bgIntV'), Math.round((S.bg.interval || 60) / 60) || 1, function (v) { return v + ' דק׳'; });
+    setRange($('bgDim'), $('bgDimV'), S.bg.dim, function (v) { return v + '%'; });
+    renderGallery(); renderLogo();
+    $('cityNow').textContent = (S.info.city && S.info.city.name) || '—';
+    setRange($('scale'), $('scaleV'), S.style.scale || 100, function (v) { return v + '%'; });
+  }
+
+  /* ---------- auth + start ---------- */
+  var started = false;
+  function start() {
+    if (started) return; started = true;
+    Store.initIfEmpty();
+    Store.onConnection(function (ok) { $('conn').classList.toggle('off', !ok); });
+    Store.onMediaIndex(function (ix) { INDEX = ix; if (S) { renderGallery(); renderLogo(); } });
+    Store.onSettings(function (s) { S = s; render(); });
+  }
+  if (Store.mode === 'demo') { $('demoBar').classList.remove('hide'); $('logoutWrap').classList.add('hide'); }
+  Store.onAuth(function (u) {
+    $('login').classList.toggle('hide', !!u);
+    $('app').classList.toggle('hide', !u);
+    if (u) start(); else if (started) location.reload();
+  });
+  $('loginForm').addEventListener('submit', function (e) {
+    e.preventDefault(); $('loginErr').textContent = '';
+    Store.signIn($('em').value.trim(), $('pw').value).catch(function () { $('loginErr').textContent = 'אימייל או סיסמה שגויים'; });
+  });
+  $('logout').addEventListener('click', function () { if (confirm('להתנתק?')) Store.signOut(); });
+
+  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(function () {});
+})();
+</script>
+</body>
+</html>

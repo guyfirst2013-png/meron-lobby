@@ -1,0 +1,8 @@
+{
+  "rules": {
+    "screen": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email === 'CLIENT_EMAIL_HERE'"
+    }
+  }
+}

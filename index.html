@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>מסך לובי</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Rubik:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#fffaf1; --ink-soft:rgba(255,250,241,.82); --ink-faint:rgba(255,250,241,.6);
+    --glass:rgba(18,22,26,.34); --glass-strong:rgba(18,22,26,.55); --line:rgba(255,250,241,.16);
+    --accent:#f2d49b; --s:1;
+  }
+  html,body{margin:0;height:100%;background:#1d2622;overflow:hidden;cursor:none}
+  body{font-family:Assistant,Rubik,Arial,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+  /* Fixed 1920×1080 stage, scaled to whatever the TV browser reports */
+  #stage{position:absolute;top:0;left:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden}
+
+  /* Background: two layers that cross-fade, with a slow gentle zoom */
+  .bg{position:absolute;inset:-2%;background-size:cover;background-position:center;opacity:0;transition:opacity 2.5s ease}
+  .bg.on{opacity:1}
+  .bg.zoom{animation:drift 70s ease-in-out infinite alternate}
+  @keyframes drift{from{transform:scale(1)}to{transform:scale(1.06)}}
+  #dim{position:absolute;inset:0;background:
+      radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 0%, rgba(0,0,0,.25) 100%),
+      rgba(0,0,0,var(--dim,.35));transition:background .8s}
+
+  .hide{display:none!important}
+  .shadow{text-shadow:0 2px 18px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.4)}
+  .glass{background:var(--glass);border:1px solid var(--line);border-radius:28px}
+  @supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
+    .glass{-webkit-backdrop-filter:blur(14px) saturate(1.1);backdrop-filter:blur(14px) saturate(1.1)}
+  }
+
+  /* Logo — top right */
+  #logo{position:absolute;top:48px;right:64px;width:340px;height:170px;display:flex;align-items:flex-start;justify-content:flex-end}
+  #logo img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 4px 16px rgba(0,0,0,.25))}
+
+  /* Info panel — top left */
+  #info{position:absolute;top:40px;left:56px;min-width:400px;max-width:520px;padding:26px 34px 24px}
+  #info .time{font-family:Rubik,sans-serif;font-weight:600;font-size:calc(96px*var(--s));line-height:1;letter-spacing:1px;direction:ltr;text-align:right}
+  #info .date{font-size:calc(31px*var(--s));font-weight:600;margin-top:12px;line-height:1.25}
+  #info .heb{font-size:calc(31px*var(--s));color:var(--accent);font-weight:700;margin-top:4px}
+  #info .wx{display:flex;align-items:center;gap:16px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+  #info .wx svg{width:calc(58px*var(--s));height:calc(58px*var(--s));color:var(--accent);flex:none}
+  #info .wx .t{font-family:Rubik,sans-serif;font-size:calc(46px*var(--s));font-weight:600;direction:ltr}
+  #info .wx .d{font-size:calc(26px*var(--s));color:var(--ink-soft);line-height:1.2}
+  #info .hol{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);font-size:calc(28px*var(--s));line-height:1.35}
+  #info .hol b{color:var(--accent)}
+  #info .hol div+div{color:var(--ink-soft)}
+
+  /* Main title */
+  #title{position:absolute;top:150px;left:500px;right:500px;text-align:center;
+    font-family:Rubik,sans-serif;font-weight:700;font-size:calc(112px*var(--s));line-height:1.08;letter-spacing:.5px}
+  #title.solo{top:190px}
+
+  /* Items */
+  #items{position:absolute;top:360px;bottom:130px;left:240px;right:240px}
+  .page{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:22px;
+    opacity:0;transform:translateY(14px);transition:opacity 1.2s ease,transform 1.2s ease}
+  .page.on{opacity:1;transform:none}
+  .item{display:flex;gap:28px;align-items:flex-start;padding:22px 32px}
+  .item .ic{flex:none;width:calc(88px*var(--s));height:calc(88px*var(--s));border-radius:22px;background:rgba(255,250,241,.14);
+    border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--accent)}
+  .item .ic svg{width:58%;height:58%}
+  .item .tx{flex:1;min-width:0}
+  .item h2{margin:0;font-family:Rubik,sans-serif;font-weight:600;font-size:calc(50px*var(--s));line-height:1.15;color:var(--ink)}
+  .item p{margin:8px 0 0;font-size:calc(38px*var(--s));line-height:1.35;color:var(--ink-soft);font-weight:600;white-space:pre-line;
+    display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+  .item.noic{padding-right:40px}
+  #dots{position:absolute;bottom:100px;left:0;right:0;display:flex;justify-content:center;gap:12px}
+  #dots i{width:12px;height:12px;border-radius:50%;background:var(--ink-faint);opacity:.45;transition:all .6s}
+  #dots i.on{opacity:1;width:34px;border-radius:6px;background:var(--accent)}
+
+  /* Corner text — bottom right */
+  #corner{position:absolute;bottom:52px;right:64px;max-width:1100px;font-family:Rubik,sans-serif;font-weight:500;
+    font-size:calc(46px*var(--s));line-height:1.2}
+
+  #status{position:absolute;bottom:22px;left:26px;font:600 18px Assistant,sans-serif;color:var(--ink-faint);display:flex;gap:10px;align-items:center}
+  #status .off{width:12px;height:12px;border-radius:50%;background:#e76f51;display:none}
+  #status.offline .off{display:block}
+  #measure{position:absolute;visibility:hidden;left:240px;right:240px;top:0}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="bg" id="bgA"></div>
+  <div class="bg" id="bgB"></div>
+  <div id="dim"></div>
+
+  <div id="logo"></div>
+
+  <div id="info" class="glass shadow">
+    <div class="time" id="iTime">--:--</div>
+    <div class="date" id="iGreg"></div>
+    <div class="heb" id="iHeb"></div>
+    <div class="wx" id="iWx"></div>
+    <div class="hol" id="iHol"></div>
+  </div>
+
+  <h1 id="title" class="shadow"></h1>
+
+  <div id="items"></div>
+  <div id="dots"></div>
+  <div id="measure"></div>
+
+  <div id="corner" class="shadow"></div>
+  <div id="status"><span class="off"></span><span id="demo"></span></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/store.js"></script>
+<script src="js/info.js"></script>
+<script src="js/icons.js"></script>
+<script>
+(function () {
+  'use strict';
+  var Store = window.LobbyStore, Info = window.LobbyInfo;
+  var $ = function (id) { return document.getElementById(id); };
+  var S = null, INDEX = {}, cache = {};
+
+  /* ---------- stage scaling ---------- */
+  function fit() {
+    var k = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    var st = $('stage');
+    st.style.transform = 'scale(' + k + ')';
+    st.style.left = ((window.innerWidth - 1920 * k) / 2) + 'px';
+    st.style.top = ((window.innerHeight - 1080 * k) / 2) + 'px';
+  }
+  window.addEventListener('resize', fit); fit();
+  // Any remote key / click → try fullscreen (TV browsers allow it after a user action)
+  function goFull() { var d = document.documentElement; var f = d.requestFullscreen || d.webkitRequestFullscreen; if (f && !document.fullscreenElement) try { f.call(d); } catch (e) {} }
+  document.addEventListener('keydown', goFull); document.addEventListener('click', goFull);
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function show(el, on) { el.classList.toggle('hide', !on); }
+
+  /* ---------- images ---------- */
+  function builtin(id) { for (var i = 0; i < Store.BUILTIN_BG.length; i++) if (Store.BUILTIN_BG[i].id === id) return Store.BUILTIN_BG[i]; return null; }
+  function srcFor(id) {
+    var b = builtin(id); if (b) return Promise.resolve(b.src);
+    if (cache[id]) return Promise.resolve(cache[id]);
+    return Store.getMedia(id).then(function (d) { if (d) cache[id] = d; return d; });
+  }
+  function preload(src) {
+    return new Promise(function (res) { var im = new Image(); im.onload = function () { res(src); }; im.onerror = function () { res(null); }; im.src = src; });
+  }
+
+  /* ---------- background ---------- */
+  var bgCur = null, bgTimer = null, bgFront = 'bgA';
+  function bgList() {
+    var all = Store.BUILTIN_BG.map(function (b) { return b.id; });
+    Object.keys(INDEX).forEach(function (id) { if (INDEX[id].type === 'bg') all.push(id); });
+    var list;
+    if (S.bg.mode === 'single') list = all.indexOf(S.bg.selected) > -1 ? [S.bg.selected] : [];
+    else list = all.filter(function (id) { return S.bg.rotation && S.bg.rotation[id]; });
+    return list.length ? list : [all[0]];
+  }
+  function showBg(id) {
+    bgCur = id;
+    srcFor(id).then(function (src) { return src ? preload(src) : null; }).then(function (src) {
+      if (!src || bgCur !== id) return;
+      var back = bgFront === 'bgA' ? 'bgB' : 'bgA';
+      var el = $(back);
+      el.style.backgroundImage = 'url("' + src + '")';
+      el.classList.remove('zoom'); void el.offsetWidth; el.classList.add('zoom');
+      el.classList.add('on'); $(bgFront).classList.remove('on');
+      bgFront = back;
+    });
+  }
+  function scheduleBg(force) {
+    var list = bgList();
+    if (force || list.indexOf(bgCur) === -1) showBg(list[0]);
+    clearInterval(bgTimer);
+    if (list.length > 1) {
+      bgTimer = setInterval(function () {
+        var l = bgList(); var i = l.indexOf(bgCur);
+        showBg(l[(i + 1) % l.length]);
+      }, Math.max(10, +S.bg.interval || 60) * 1000);
+    }
+  }
+
+  /* ---------- logo ---------- */
+  var logoShown = null;
+  function renderLogo() {
+    var on = S.logo.show && S.logo.id && INDEX[S.logo.id];
+    show($('logo'), !!on);
+    if (!on) { $('logo').innerHTML = ''; logoShown = null; return; }
+    if (logoShown === S.logo.id) return;
+    var id = S.logo.id; logoShown = id;
+    srcFor(id).then(function (src) { if (src && logoShown === id) $('logo').innerHTML = '<img alt="" src="' + src + '">'; });
+  }
+
+  /* ---------- items with automatic paging ---------- */
+  var pages = [], pageIdx = 0, pageTimer = null, itemsSig = '';
+  function itemHTML(it) {
+    var ic = it.icon ? window.LobbyIcons.svg(it.icon) : '';
+    return '<div class="item glass shadow' + (ic ? '' : ' noic') + '">' +
+      (ic ? '<div class="ic">' + ic + '</div>' : '') +
+      '<div class="tx">' + (it.title ? '<h2>' + esc(it.title) + '</h2>' : '') +
+      (it.body ? '<p>' + esc(it.body) + '</p>' : '') + '</div></div>';
+  }
+  function renderItems() {
+    var list = S.items.list || {};
+    var arr = Object.keys(list).map(function (k) { return list[k]; })
+      .filter(function (it) { return it && it.show !== false && (it.title || it.body); })
+      .sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+    var on = S.items.show && arr.length > 0;
+    show($('items'), on); show($('dots'), on);
+    var sig = JSON.stringify(arr) + '|' + S.style.scale + '|' + (S.mainTitle.show ? 1 : 0);
+    if (!on) { itemsSig = ''; clearInterval(pageTimer); return; }
+    if (sig === itemsSig) return;
+    itemsSig = sig;
+
+    // measure each item at final width, then group into pages that fit
+    var box = $('items'), m = $('measure');
+    box.style.top = S.mainTitle.show && S.mainTitle.text ? '360px' : '230px';
+    var avail = box.clientHeight, gap = 22;
+    m.innerHTML = arr.map(itemHTML).join('');
+    var hs = [].map.call(m.children, function (c) { return c.offsetHeight; });
+    m.innerHTML = '';
+    pages = []; var cur = [], h = 0;
+    arr.forEach(function (it, i) {
+      var need = hs[i] + (cur.length ? gap : 0);
+      if (cur.length && h + need > avail) { pages.push(cur); cur = []; h = 0; need = hs[i]; }
+      cur.push(it); h += need;
+    });
+    if (cur.length) pages.push(cur);
+
+    box.innerHTML = pages.map(function (p) { return '<div class="page">' + p.map(itemHTML).join('') + '</div>'; }).join('');
+    $('dots').innerHTML = pages.length > 1 ? pages.map(function () { return '<i></i>'; }).join('') : '';
+    pageIdx = 0; showPage();
+    clearInterval(pageTimer);
+    if (pages.length > 1) pageTimer = setInterval(function () { pageIdx = (pageIdx + 1) % pages.length; showPage(); },
+      Math.max(5, +S.items.pageSeconds || 15) * 1000);
+  }
+  function showPage() {
+    [].forEach.call($('items').children, function (p, i) { p.classList.toggle('on', i === pageIdx); });
+    [].forEach.call($('dots').children, function (d, i) { d.classList.toggle('on', i === pageIdx); });
+  }
+
+  /* ---------- info panel ---------- */
+  var jewish = null, weather = null, lastDay = '', wxKey = '';
+  function renderInfo() {
+    var I = S.info, now = new Date();
+    show($('info'), I.show && (I.time || I.greg || I.hebrew || I.weather || I.holidays));
+    show($('iTime'), I.time); $('iTime').textContent = Info.timeText(now);
+    show($('iGreg'), I.greg); $('iGreg').textContent = Info.gregText(now);
+    var heb = jewish && jewish.hebrew ? jewish.hebrew : Info.hebrewFallback(now);
+    show($('iHeb'), I.hebrew && !!heb); $('iHeb').textContent = heb;
+
+    if (I.weather && weather) {
+      var d = Info.weatherDesc(weather.code);
+      $('iWx').innerHTML = Info.icon(d[1], weather.isDay) +
+        '<div class="t">' + weather.temp + '°</div><div class="d">' + esc(d[0]) + (S.info.city && S.info.city.name ? ' · ' + esc(S.info.city.name) : '') +
+        (weather.max != null ? '<br>' + weather.min + '°–' + weather.max + '°' : '') + '</div>';
+      show($('iWx'), true);
+    } else show($('iWx'), false);
+
+    var hol = [];
+    if (jewish) {
+      if (jewish.today.length) hol.push('<div><b>' + esc(jewish.today.join(' · ')) + '</b></div>');
+      if (jewish.parasha) hol.push('<div>' + esc(jewish.parasha) + '</div>');
+      if (jewish.upcoming) {
+        var u = jewish.upcoming, when = u.days === 1 ? 'מחר' : 'בעוד ' + u.days + ' ימים';
+        hol.push('<div>' + esc(u.title) + ' – ' + when + '</div>');
+      }
+    }
+    $('iHol').innerHTML = hol.join('');
+    show($('iHol'), I.holidays && hol.length > 0);
+    // when the Hebrew date is hidden and so is the greg date etc, avoid empty borders
+    if (!(I.time || I.greg || I.hebrew)) { $('iWx').style.borderTop = '0'; $('iWx').style.marginTop = '0'; $('iWx').style.paddingTop = '0'; }
+    else { $('iWx').style.borderTop = ''; $('iWx').style.marginTop = ''; $('iWx').style.paddingTop = ''; }
+  }
+  function refreshJewish() {
+    Info.fetchJewish(new Date()).then(function (j) { jewish = j; if (S) renderInfo(); }).catch(function () {});
+  }
+  function refreshWeather(force) {
+    var c = S && S.info.city; if (!c) return;
+    var key = c.lat + ',' + c.lon;
+    if (!force && key === wxKey) return;
+    wxKey = key;
+    Info.fetchWeather(c.lat, c.lon).then(function (w) { weather = w; renderInfo(); }).catch(function () {});
+  }
+  setInterval(function () {
+    if (!S) return;
+    var now = new Date(), day = now.toDateString();
+    if (day !== lastDay) { lastDay = day; refreshJewish(); }
+    renderInfo();
+    // daily refresh at 04:00 to keep the TV browser fresh
+    if (now.getHours() === 4 && now.getMinutes() === 0 && now.getSeconds() < 2) location.reload();
+  }, 1000);
+  setInterval(function () { refreshWeather(true); }, 20 * 60 * 1000);
+  setInterval(refreshJewish, 3 * 60 * 60 * 1000);
+
+  /* ---------- render all ---------- */
+  function render() {
+    document.documentElement.style.setProperty('--s', (S.style.scale || 100) / 100);
+    $('dim').style.setProperty('--dim', Math.min(80, Math.max(0, +S.bg.dim)) / 100);
+    var t = $('title'); t.textContent = S.mainTitle.text || ''; show(t, S.mainTitle.show && !!S.mainTitle.text);
+    t.classList.toggle('solo', !(S.items.show));
+    var c = $('corner'); c.textContent = S.corner.text || ''; show(c, S.corner.show && !!S.corner.text);
+    renderLogo(); renderInfo(); renderItems(); refreshWeather(false);
+  }
+
+  if (Store.mode === 'demo') $('demo').textContent = 'DEMO';
+  Store.onConnection(function (ok) { $('status').classList.toggle('offline', !ok); });
+  Store.onMediaIndex(function (ix) { INDEX = ix; if (S) { renderLogo(); scheduleBg(false); } });
+  var firstBg = true, bgSig = '';
+  Store.onSettings(function (s) {
+    S = s; render();
+    var sig = JSON.stringify(s.bg);
+    if (firstBg || sig !== bgSig) { scheduleBg(false); firstBg = false; bgSig = sig; }
+  });
+  // fonts can change measurements
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { itemsSig = ''; if (S) renderItems(); });
+})();
+</script>
+</body>
+</html>
