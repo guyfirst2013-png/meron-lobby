@@ -160,6 +160,9 @@
       <h2 class="sec">מה מוצג על המסך</h2>
       <div class="card" id="visList"></div>
 
+      <h2 class="sec">עיר למזג האוויר</h2>
+      <div class="card"><div class="row"><span class="lbl" id="cityNow2">—</span><button class="btn ghost" id="cityGo">שינוי עיר</button></div></div>
+
       <h2 class="sec">כותרת ראשית</h2>
       <div class="card"><div class="field"><input type="text" id="mainTitle" placeholder="לדוגמה: ברוכים הבאים"></div></div>
 
@@ -218,7 +221,7 @@
 
       <h2 class="sec">עיר למזג האוויר</h2>
       <div class="card"><div class="field">
-        <input type="search" id="citySearch" placeholder="חיפוש עיר…">
+        <input type="search" id="citySearch" placeholder="הקלידו שם עיר, למשל: ירושלים" enterkeyhint="search">
         <div class="cities" id="cityResults"></div>
         <p class="hint" style="margin:8px 0 0">כרגע: <b id="cityNow"></b></p>
       </div></div>
@@ -537,6 +540,15 @@
       }).catch(function () { $('cityResults').innerHTML = '<p class="hint">אין חיבור לשירות מזג האוויר</p>'; });
     }, 400);
   });
+  $('cityGo').addEventListener('click', function () {
+    document.querySelector('nav button[data-tab=t-info]').click();
+    setTimeout(function () { var el = $('citySearch'); el.scrollIntoView({ block: 'center' }); el.focus(); }, 50);
+  });
+  // Enter picks the first result
+  $('citySearch').addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter') return; e.preventDefault();
+    var b = $('cityResults').querySelector('button'); if (b) b.click();
+  });
   bindRange($('scale'), $('scaleV'), 'style/scale', function (v) { return v + '%'; });
 
   /* ---------- render ---------- */
@@ -555,6 +567,7 @@
     setRange($('bgDim'), $('bgDimV'), S.bg.dim, function (v) { return v + '%'; });
     renderGallery(); renderLogo();
     $('cityNow').textContent = (S.info.city && S.info.city.name) || '—';
+    $('cityNow2').textContent = (S.info.city && S.info.city.name) || '—';
     setRange($('scale'), $('scaleV'), S.style.scale || 100, function (v) { return v + '%'; });
   }
 

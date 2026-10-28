@@ -44,34 +44,35 @@
   }
 
   /* Logo — top right */
-  #logo{position:absolute;top:48px;right:64px;width:340px;height:170px;display:flex;align-items:flex-start;justify-content:flex-end}
-  #logo .plate{max-width:100%;max-height:100%;display:flex;border-radius:24px;transition:padding 1.5s,background-color 1.5s}
-  #logo img{max-width:100%;max-height:150px;object-fit:contain;display:block}
-  #stage:not(.light) #logo .plate{background:rgba(255,255,255,.88);padding:16px 22px;box-shadow:0 6px 24px rgba(0,0,0,.2)}
-  #stage:not(.light) #logo img{max-height:120px}
+  #logo{position:absolute;top:40px;right:56px;width:240px;height:110px;display:flex;align-items:flex-start;justify-content:flex-end}
+  #logo .plate{max-width:100%;max-height:100%;display:flex}
+  #logo img{max-width:100%;max-height:100px;object-fit:contain;display:block}
+  /* keep the logo's own transparency; on dark backgrounds add a soft light halo so a dark logo stays visible */
+  #stage:not(.light) #logo img{filter:drop-shadow(0 0 1px rgba(255,255,255,.9)) drop-shadow(0 0 14px rgba(255,255,255,.75))}
 
-  /* Info panel — top left */
-  /* Info panel — compact column, max ~18% of the screen width */
-  #info{position:absolute;top:36px;left:40px;width:300px;max-width:340px;padding:18px 22px 16px;border-radius:22px}
-  #info .time{font-family:Rubik,sans-serif;font-weight:600;font-size:calc(64px*var(--s));line-height:1;direction:ltr;text-align:right}
-  #info .date{font-size:calc(22px*var(--s));font-weight:600;margin-top:8px;line-height:1.25}
-  #info .heb{font-size:calc(22px*var(--s));color:var(--accent);font-weight:700;margin-top:2px}
-  #info .wx{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
-  #info .wx svg{width:calc(34px*var(--s));height:calc(34px*var(--s));color:var(--accent);flex:none}
-  #info .wx .t{font-family:Rubik,sans-serif;font-size:calc(30px*var(--s));font-weight:600;direction:ltr}
-  #info .wx .d{font-size:calc(18px*var(--s));color:var(--ink-soft);line-height:1.25}
-  #info .hol{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:calc(19px*var(--s));line-height:1.35}
+  /* Info bar — one line in the bottom-left corner, level with the corner text */
+  #info{position:absolute;bottom:40px;left:40px;max-width:1120px;display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;
+    padding:10px 8px;border-radius:999px;overflow:hidden}
+  #info > div{padding:0 18px;line-height:1.1;display:flex;align-items:center;gap:8px}
+  #info > div:not(.hide) ~ div:not(.hide){border-inline-start:1px solid var(--line)}
+  #info .time{font-family:Rubik,sans-serif;font-weight:600;font-size:calc(40px*var(--s));direction:ltr}
+  #info .date{font-size:calc(24px*var(--s));font-weight:600}
+  #info .heb{font-size:calc(24px*var(--s));color:var(--accent);font-weight:700}
+  #info .wx svg{width:calc(32px*var(--s));height:calc(32px*var(--s));color:var(--accent);flex:none}
+  #info .wx .t{font-family:Rubik,sans-serif;font-size:calc(28px*var(--s));font-weight:600;direction:ltr}
+  #info .wx .d{font-size:calc(22px*var(--s));color:var(--ink-soft)}
+  #info .hol{font-size:calc(22px*var(--s));gap:14px}
   #info .hol b{color:var(--accent)}
   #info .hol div+div{color:var(--ink-soft)}
 
   /* Main title */
   /* Main title — sits high, between the info panel and the logo; shrinks to fit (see fitTitle) */
-  #title{position:absolute;top:44px;left:420px;right:420px;margin:0;text-align:center;
+  #title{position:absolute;top:44px;left:320px;right:320px;margin:0;text-align:center;
     font-family:Rubik,sans-serif;font-weight:700;font-size:calc(104px*var(--s));line-height:1.1;white-space:nowrap}
   #title.wrap{white-space:normal}
 
   /* Items */
-  #items{position:absolute;top:360px;bottom:130px;left:240px;right:240px}
+  #items{position:absolute;top:360px;bottom:160px;left:240px;right:240px}
   .page{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:22px;
     opacity:0;transform:translateY(14px);transition:opacity 1.2s ease,transform 1.2s ease}
   .page.on{opacity:1;transform:none}
@@ -84,12 +85,12 @@
   .item p{margin:8px 0 0;font-size:calc(38px*var(--s));line-height:1.35;color:var(--ink-soft);font-weight:600;white-space:pre-line;
     display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
   .item.noic{padding-right:40px}
-  #dots{position:absolute;bottom:100px;left:0;right:0;display:flex;justify-content:center;gap:12px}
+  #dots{position:absolute;bottom:128px;left:0;right:0;display:flex;justify-content:center;gap:12px}
   #dots i{width:12px;height:12px;border-radius:50%;background:var(--ink-faint);opacity:.45;transition:all .6s}
   #dots i.on{opacity:1;width:34px;border-radius:6px;background:var(--accent)}
 
   /* Corner text — bottom right */
-  #corner{position:absolute;bottom:52px;right:64px;max-width:1100px;font-family:Rubik,sans-serif;font-weight:500;
+  #corner{position:absolute;bottom:42px;right:64px;max-width:1000px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Rubik,sans-serif;font-weight:500;
     font-size:calc(46px*var(--s));line-height:1.2}
 
   #status{position:absolute;bottom:22px;left:26px;font:600 18px Assistant,sans-serif;color:var(--ink-faint);display:flex;gap:10px;align-items:center}
@@ -275,8 +276,7 @@
     if (I.weather && weather) {
       var d = Info.weatherDesc(weather.code);
       $('iWx').innerHTML = Info.icon(d[1], weather.isDay) +
-        '<div class="t">' + weather.temp + '°</div><div class="d">' + esc(d[0]) + (S.info.city && S.info.city.name ? ' · ' + esc(S.info.city.name) : '') +
-        (weather.max != null ? '<br>' + weather.min + '°–' + weather.max + '°' : '') + '</div>';
+        '<div class="t">' + weather.temp + '°</div><div class="d">' + esc(d[0]) + (S.info.city && S.info.city.name ? ' · ' + esc(S.info.city.name) : '') + '</div>';
       show($('iWx'), true);
     } else show($('iWx'), false);
 
@@ -284,16 +284,18 @@
     if (jewish) {
       if (jewish.today.length) hol.push('<div><b>' + esc(jewish.today.join(' · ')) + '</b></div>');
       if (jewish.parasha) hol.push('<div>' + esc(jewish.parasha) + '</div>');
-      if (jewish.upcoming) {
+      if (jewish.upcoming && !jewish.today.length) {
         var u = jewish.upcoming, when = u.days === 1 ? 'מחר' : 'בעוד ' + u.days + ' ימים';
         hol.push('<div>' + esc(u.title) + ' – ' + when + '</div>');
       }
     }
     $('iHol').innerHTML = hol.join('');
     show($('iHol'), I.holidays && hol.length > 0);
-    // when the Hebrew date is hidden and so is the greg date etc, avoid empty borders
-    if (!(I.time || I.greg || I.hebrew)) { $('iWx').style.borderTop = '0'; $('iWx').style.marginTop = '0'; $('iWx').style.paddingTop = '0'; }
-    else { $('iWx').style.borderTop = ''; $('iWx').style.marginTop = ''; $('iWx').style.paddingTop = ''; }
+    // keep the info bar clear of the corner text
+    var c = $('corner'), room = 1920 - 40 - 64 - 40 - (c.classList.contains('hide') ? 0 : c.offsetWidth);
+    $('info').style.maxWidth = Math.max(400, room) + 'px';
+    // if it still doesn't fit, drop the holiday part rather than cutting words
+    if ($('info').scrollWidth > $('info').clientWidth + 1) show($('iHol'), false);
   }
   function refreshJewish() {
     Info.fetchJewish(new Date()).then(function (j) { jewish = j; if (S) { renderInfo(); renderItems(); } }).catch(function () {});
@@ -332,7 +334,7 @@
   // Messages start below whatever is above them (title, info panel, logo)
   function contentTop() {
     var bottom = 0;
-    ['title', 'info', 'logo'].forEach(function (id) {
+    ['title', 'logo'].forEach(function (id) {
       var el = $(id); if (!el.classList.contains('hide')) bottom = Math.max(bottom, el.offsetTop + el.offsetHeight);
     });
     return Math.max(150, bottom + 34);

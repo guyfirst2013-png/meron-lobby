@@ -23,7 +23,7 @@
     { id: 'builtin-dusk', name: 'דמדומים', src: 'BACKGROUNDS/dusk.jpg', thumb: 'BACKGROUNDS/dusk_thumb.jpg', tone: 'dark' },
     { id: 'builtin-warm', name: 'חום', src: 'BACKGROUNDS/warm.jpg', thumb: 'BACKGROUNDS/warm_thumb.jpg', tone: 'dark' }
   ];
-  var BUILTIN_LOGO = { id: 'builtin-logo', src: 'LOGO/logo-web.png' };
+  var BUILTIN_LOGO = { id: 'builtin-logo', src: 'LOGO/logo.png' };
 
   var DEFAULTS = {
     mainTitle: { show: true, text: 'ברוכים הבאים' },
