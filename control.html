@@ -277,7 +277,11 @@
   function toast(msg) { var t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove('on'); }, 1400); }
   function save(path, val, quiet) {
     return Store.set(path, val).then(function () { if (!quiet) toast('נשמר ✓'); })
-      .catch(function (e) { toast('שגיאה בשמירה'); console.error(e); });
+      .catch(function (e) {
+        console.error(e);
+        var denied = /permission/i.test(String(e && (e.code || e.message)));
+        toast(denied ? 'אין הרשאת שמירה למשתמש ' + (who || '') : 'שגיאה בשמירה');
+      });
   }
   function sw(id, checked) { return '<label class="sw"><input type="checkbox" data-k="' + id + '"' + (checked ? ' checked' : '') + '><span></span></label>'; }
   function focused(el) { return document.activeElement === el; }
@@ -564,7 +568,9 @@
     Store.onSettings(function (s) { S = s; render(); });
   }
   if (Store.mode === 'demo') { $('demoBar').classList.remove('hide'); $('logoutWrap').classList.add('hide'); }
+  var who = '';
   Store.onAuth(function (u) {
+    who = u && u.email !== 'demo' ? u.email : '';
     $('login').classList.toggle('hide', !!u);
     $('app').classList.toggle('hide', !u);
     if (u) start(); else if (started) location.reload();

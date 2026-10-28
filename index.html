@@ -51,22 +51,24 @@
   #stage:not(.light) #logo img{max-height:120px}
 
   /* Info panel — top left */
-  #info{position:absolute;top:40px;left:56px;min-width:400px;max-width:520px;padding:26px 34px 24px}
-  #info .time{font-family:Rubik,sans-serif;font-weight:600;font-size:calc(96px*var(--s));line-height:1;letter-spacing:1px;direction:ltr;text-align:right}
-  #info .date{font-size:calc(31px*var(--s));font-weight:600;margin-top:12px;line-height:1.25}
-  #info .heb{font-size:calc(31px*var(--s));color:var(--accent);font-weight:700;margin-top:4px}
-  #info .wx{display:flex;align-items:center;gap:16px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
-  #info .wx svg{width:calc(58px*var(--s));height:calc(58px*var(--s));color:var(--accent);flex:none}
-  #info .wx .t{font-family:Rubik,sans-serif;font-size:calc(46px*var(--s));font-weight:600;direction:ltr}
-  #info .wx .d{font-size:calc(26px*var(--s));color:var(--ink-soft);line-height:1.2}
-  #info .hol{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);font-size:calc(28px*var(--s));line-height:1.35}
+  /* Info panel — compact column, max ~18% of the screen width */
+  #info{position:absolute;top:36px;left:40px;width:300px;max-width:340px;padding:18px 22px 16px;border-radius:22px}
+  #info .time{font-family:Rubik,sans-serif;font-weight:600;font-size:calc(64px*var(--s));line-height:1;direction:ltr;text-align:right}
+  #info .date{font-size:calc(22px*var(--s));font-weight:600;margin-top:8px;line-height:1.25}
+  #info .heb{font-size:calc(22px*var(--s));color:var(--accent);font-weight:700;margin-top:2px}
+  #info .wx{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+  #info .wx svg{width:calc(34px*var(--s));height:calc(34px*var(--s));color:var(--accent);flex:none}
+  #info .wx .t{font-family:Rubik,sans-serif;font-size:calc(30px*var(--s));font-weight:600;direction:ltr}
+  #info .wx .d{font-size:calc(18px*var(--s));color:var(--ink-soft);line-height:1.25}
+  #info .hol{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:calc(19px*var(--s));line-height:1.35}
   #info .hol b{color:var(--accent)}
   #info .hol div+div{color:var(--ink-soft)}
 
   /* Main title */
-  #title{position:absolute;top:150px;left:500px;right:500px;text-align:center;
-    font-family:Rubik,sans-serif;font-weight:700;font-size:calc(112px*var(--s));line-height:1.08;letter-spacing:.5px}
-  #title.solo{top:190px}
+  /* Main title — sits high, between the info panel and the logo; shrinks to fit (see fitTitle) */
+  #title{position:absolute;top:44px;left:420px;right:420px;margin:0;text-align:center;
+    font-family:Rubik,sans-serif;font-weight:700;font-size:calc(104px*var(--s));line-height:1.1;white-space:nowrap}
+  #title.wrap{white-space:normal}
 
   /* Items */
   #items{position:absolute;top:360px;bottom:130px;left:240px;right:240px}
@@ -228,14 +230,14 @@
       .sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
     var on = S.items.show && arr.length > 0;
     show($('items'), on); show($('dots'), on);
-    var sig = JSON.stringify(arr) + '|' + S.style.scale + '|' + (S.mainTitle.show ? 1 : 0);
+    var sig = JSON.stringify(arr) + '|' + S.style.scale + '|' + contentTop();
     if (!on) { itemsSig = ''; clearInterval(pageTimer); return; }
     if (sig === itemsSig) return;
     itemsSig = sig;
 
     // measure each item at final width, then group into pages that fit
     var box = $('items'), m = $('measure');
-    box.style.top = S.mainTitle.show && S.mainTitle.text ? '360px' : '230px';
+    box.style.top = contentTop() + 'px';
     var avail = box.clientHeight, gap = 22;
     m.innerHTML = arr.map(itemHTML).join('');
     var hs = [].map.call(m.children, function (c) { return c.offsetHeight; });
@@ -294,14 +296,14 @@
     else { $('iWx').style.borderTop = ''; $('iWx').style.marginTop = ''; $('iWx').style.paddingTop = ''; }
   }
   function refreshJewish() {
-    Info.fetchJewish(new Date()).then(function (j) { jewish = j; if (S) renderInfo(); }).catch(function () {});
+    Info.fetchJewish(new Date()).then(function (j) { jewish = j; if (S) { renderInfo(); renderItems(); } }).catch(function () {});
   }
   function refreshWeather(force) {
     var c = S && S.info.city; if (!c) return;
     var key = c.lat + ',' + c.lon;
     if (!force && key === wxKey) return;
     wxKey = key;
-    Info.fetchWeather(c.lat, c.lon).then(function (w) { weather = w; renderInfo(); }).catch(function () {});
+    Info.fetchWeather(c.lat, c.lon).then(function (w) { weather = w; renderInfo(); renderItems(); }).catch(function () {});
   }
   setInterval(function () {
     if (!S) return;
@@ -314,14 +316,35 @@
   setInterval(function () { refreshWeather(true); }, 20 * 60 * 1000);
   setInterval(refreshJewish, 3 * 60 * 60 * 1000);
 
+  /* ---------- layout helpers ---------- */
+  // Shrink the main title until it fits on one line; very long titles wrap to two lines at the minimum size
+  function fitTitle() {
+    var t = $('title'), sc = (S.style.scale || 100) / 100, size = Math.round(104 * sc), min1 = Math.round(76 * sc), min2 = Math.round(52 * sc);
+    t.classList.remove('wrap'); t.style.fontSize = size + 'px';
+    if (t.classList.contains('hide')) return;
+    // 1) one line, shrinking down to min1
+    while (t.scrollWidth > t.clientWidth + 1 && size > min1) { size -= 4; t.style.fontSize = size + 'px'; }
+    if (t.scrollWidth <= t.clientWidth + 1) return;
+    // 2) two lines, shrinking down to min2 until it fits in two lines
+    t.classList.add('wrap');
+    while (t.offsetHeight > size * 1.1 * 2 + 4 && size > min2) { size -= 4; t.style.fontSize = size + 'px'; }
+  }
+  // Messages start below whatever is above them (title, info panel, logo)
+  function contentTop() {
+    var bottom = 0;
+    ['title', 'info', 'logo'].forEach(function (id) {
+      var el = $(id); if (!el.classList.contains('hide')) bottom = Math.max(bottom, el.offsetTop + el.offsetHeight);
+    });
+    return Math.max(150, bottom + 34);
+  }
+
   /* ---------- render all ---------- */
   function render() {
     document.documentElement.style.setProperty('--s', (S.style.scale || 100) / 100);
     $('dim').style.setProperty('--dim', Math.min(70, Math.max(0, +S.bg.dim)) / 100);
     var t = $('title'); t.textContent = S.mainTitle.text || ''; show(t, S.mainTitle.show && !!S.mainTitle.text);
-    t.classList.toggle('solo', !(S.items.show));
     var c = $('corner'); c.textContent = S.corner.text || ''; show(c, S.corner.show && !!S.corner.text);
-    renderLogo(); renderInfo(); renderItems(); refreshWeather(false);
+    fitTitle(); renderLogo(); renderInfo(); renderItems(); refreshWeather(false);
   }
 
   if (Store.mode === 'demo') $('demo').textContent = 'DEMO';
@@ -334,7 +357,7 @@
     if (firstBg || sig !== bgSig) { scheduleBg(false); firstBg = false; bgSig = sig; }
   });
   // fonts can change measurements
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { itemsSig = ''; if (S) renderItems(); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { itemsSig = ''; if (S) { fitTitle(); renderItems(); } });
 })();
 </script>
 </body>
