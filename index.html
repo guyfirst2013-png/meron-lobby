@@ -9,36 +9,36 @@
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Rubik:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#fffaf1; --ink-soft:rgba(255,250,241,.82); --ink-faint:rgba(255,250,241,.6);
-    --glass:rgba(18,22,26,.34); --glass-strong:rgba(18,22,26,.55); --line:rgba(255,250,241,.16);
-    --accent:#f2d49b; --s:1; --veil:0,0,0; --tshadow:0 2px 18px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.4);
+    --lb-ink:#fffaf1; --lb-ink-soft:rgba(255,250,241,.82); --lb-ink-faint:rgba(255,250,241,.6);
+    --lb-glass:rgba(18,22,26,.34); --lb-glass-strong:rgba(18,22,26,.55); --lb-line:rgba(255,250,241,.16);
+    --lb-accent:#f2d49b; --lobby-k:1; --lb-veil:0,0,0; --lb-tshadow:0 2px 18px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.4);
   }
   /* Light theme — used automatically on light backgrounds (e.g. the watercolors) */
   #stage.light{
-    --ink:#22303a; --ink-soft:rgba(34,48,58,.8); --ink-faint:rgba(34,48,58,.5);
-    --glass:rgba(255,255,255,.52); --line:rgba(34,48,58,.1);
-    --accent:#1f8aa6; --veil:255,255,255; --tshadow:0 1px 14px rgba(255,255,255,.7);
+    --lb-ink:#22303a; --lb-ink-soft:rgba(34,48,58,.8); --lb-ink-faint:rgba(34,48,58,.5);
+    --lb-glass:rgba(255,255,255,.52); --lb-line:rgba(34,48,58,.1);
+    --lb-accent:#1f8aa6; --lb-veil:255,255,255; --lb-tshadow:0 1px 14px rgba(255,255,255,.7);
   }
   .glass,.item .ic,#info div,#title,#corner,.item h2,.item p{transition:color 1.5s,background-color 1.5s,border-color 1.5s}
   html,body{margin:0;height:100%;background:#1d2622;overflow:hidden;cursor:none}
-  body{font-family:Assistant,Rubik,Arial,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+  body{font-family:Assistant,Rubik,Arial,sans-serif;color:var(--lb-ink);-webkit-font-smoothing:antialiased}
   /* Fixed 1920×1080 stage, scaled to whatever the TV browser reports */
-  #stage{position:absolute;top:0;left:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;color:var(--ink)}
+  #stage{position:absolute;top:0;left:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;color:var(--lb-ink)}
 
   /* Background: two layers that cross-fade, with a slow gentle zoom */
   .bg{position:absolute;inset:-2%;background-size:cover;background-position:center;opacity:0;transition:opacity 2.5s ease}
   .bg.on{opacity:1}
   .bg.zoom{animation:drift 70s ease-in-out infinite alternate}
   @keyframes drift{from{transform:scale(1)}to{transform:scale(1.06)}}
-  #dim{position:absolute;inset:0;background:rgba(var(--veil),var(--dim,.2))}
+  #dim{position:absolute;inset:0;background:rgba(var(--lb-veil),var(--lb-dim,.2))}
   #vignette{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 0%, rgba(0,0,0,.25) 100%);transition:opacity 1.5s}
   #stage.light #vignette{opacity:0}
 
   .hide{display:none!important}
-  .shadow{text-shadow:var(--tshadow)}
+  .shadow{text-shadow:var(--lb-tshadow)}
   #stage.light .glass{box-shadow:0 8px 30px rgba(34,48,58,.08)}
   #stage.light .item .ic{background:rgba(31,138,166,.1)}
-  .glass{background:var(--glass);border:1px solid var(--line);border-radius:28px}
+  .glass{background:var(--lb-glass);border:1px solid var(--lb-line);border-radius:28px}
   @supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
     .glass{-webkit-backdrop-filter:blur(14px) saturate(1.1);backdrop-filter:blur(14px) saturate(1.1)}
   }
@@ -54,21 +54,21 @@
   #info{position:absolute;bottom:40px;left:40px;max-width:1120px;display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;
     padding:10px 8px;border-radius:999px;overflow:hidden}
   #info > div{padding:0 18px;line-height:1.1;display:flex;align-items:center;gap:8px}
-  #info > div:not(.hide) ~ div:not(.hide){border-inline-start:1px solid var(--line)}
-  #info .time{font-family:Rubik,sans-serif;font-weight:600;font-size:calc(40px*var(--s));direction:ltr}
-  #info .date{font-size:calc(24px*var(--s));font-weight:600}
-  #info .heb{font-size:calc(24px*var(--s));color:var(--accent);font-weight:700}
-  #info .wx svg{width:calc(32px*var(--s));height:calc(32px*var(--s));color:var(--accent);flex:none}
-  #info .wx .t{font-family:Rubik,sans-serif;font-size:calc(28px*var(--s));font-weight:600;direction:ltr}
-  #info .wx .d{font-size:calc(22px*var(--s));color:var(--ink-soft)}
-  #info .hol{font-size:calc(22px*var(--s));gap:14px}
-  #info .hol b{color:var(--accent)}
-  #info .hol div+div{color:var(--ink-soft)}
+  #info > div:not(.hide) ~ div:not(.hide){border-inline-start:1px solid var(--lb-line)}
+  #info .time{font-family:Rubik,sans-serif;font-weight:600;font-size:calc(40px*var(--lobby-k));direction:ltr}
+  #info .date{font-size:calc(24px*var(--lobby-k));font-weight:600}
+  #info .heb{font-size:calc(24px*var(--lobby-k));color:var(--lb-accent);font-weight:700}
+  #info .wx svg{width:calc(32px*var(--lobby-k));height:calc(32px*var(--lobby-k));color:var(--lb-accent);flex:none}
+  #info .wx .t{font-family:Rubik,sans-serif;font-size:calc(28px*var(--lobby-k));font-weight:600;direction:ltr}
+  #info .wx .d{font-size:calc(22px*var(--lobby-k));color:var(--lb-ink-soft)}
+  #info .hol{font-size:calc(22px*var(--lobby-k));gap:14px}
+  #info .hol b{color:var(--lb-accent)}
+  #info .hol div+div{color:var(--lb-ink-soft)}
 
   /* Main title */
   /* Main title — sits high, between the info panel and the logo; shrinks to fit (see fitTitle) */
   #title{position:absolute;top:44px;left:320px;right:320px;margin:0;text-align:center;
-    font-family:Rubik,sans-serif;font-weight:700;font-size:calc(104px*var(--s));line-height:1.1;white-space:nowrap}
+    font-family:Rubik,sans-serif;font-weight:700;font-size:calc(104px*var(--lobby-k));line-height:1.1;white-space:nowrap}
   #title.wrap{white-space:normal}
 
   /* Items */
@@ -77,23 +77,23 @@
     opacity:0;transform:translateY(14px);transition:opacity 1.2s ease,transform 1.2s ease}
   .page.on{opacity:1;transform:none}
   .item{display:flex;gap:28px;align-items:flex-start;padding:22px 32px}
-  .item .ic{flex:none;width:calc(88px*var(--s));height:calc(88px*var(--s));border-radius:22px;background:rgba(255,250,241,.14);
-    border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--accent)}
+  .item .ic{flex:none;width:calc(88px*var(--lobby-k));height:calc(88px*var(--lobby-k));border-radius:22px;background:rgba(255,250,241,.14);
+    border:1px solid var(--lb-line);display:flex;align-items:center;justify-content:center;color:var(--lb-accent)}
   .item .ic svg{width:58%;height:58%}
   .item .tx{flex:1;min-width:0}
-  .item h2{margin:0;font-family:Rubik,sans-serif;font-weight:600;font-size:calc(50px*var(--s));line-height:1.15;color:var(--ink)}
-  .item p{margin:8px 0 0;font-size:calc(38px*var(--s));line-height:1.35;color:var(--ink-soft);font-weight:600;white-space:pre-line;
+  .item h2{margin:0;font-family:Rubik,sans-serif;font-weight:600;font-size:calc(50px*var(--lobby-k));line-height:1.15;color:var(--lb-ink)}
+  .item p{margin:8px 0 0;font-size:calc(38px*var(--lobby-k));line-height:1.35;color:var(--lb-ink-soft);font-weight:600;white-space:pre-line;
     display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
   .item.noic{padding-right:40px}
   #dots{position:absolute;bottom:128px;left:0;right:0;display:flex;justify-content:center;gap:12px}
-  #dots i{width:12px;height:12px;border-radius:50%;background:var(--ink-faint);opacity:.45;transition:all .6s}
-  #dots i.on{opacity:1;width:34px;border-radius:6px;background:var(--accent)}
+  #dots i{width:12px;height:12px;border-radius:50%;background:var(--lb-ink-faint);opacity:.45;transition:all .6s}
+  #dots i.on{opacity:1;width:34px;border-radius:6px;background:var(--lb-accent)}
 
   /* Corner text — bottom right */
   #corner{position:absolute;bottom:42px;right:64px;max-width:1000px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Rubik,sans-serif;font-weight:500;
-    font-size:calc(46px*var(--s));line-height:1.2}
+    font-size:calc(46px*var(--lobby-k));line-height:1.2}
 
-  #status{position:absolute;bottom:22px;left:26px;font:600 18px Assistant,sans-serif;color:var(--ink-faint);display:flex;gap:10px;align-items:center}
+  #status{position:absolute;bottom:22px;left:26px;font:600 18px Assistant,sans-serif;color:var(--lb-ink-faint);display:flex;gap:10px;align-items:center}
   #status .off{width:12px;height:12px;border-radius:50%;background:#e76f51;display:none}
   #status.offline .off{display:block}
   #measure{position:absolute;visibility:hidden;left:240px;right:240px;top:0}
@@ -342,8 +342,8 @@
 
   /* ---------- render all ---------- */
   function render() {
-    document.documentElement.style.setProperty('--s', (S.style.scale || 100) / 100);
-    $('dim').style.setProperty('--dim', Math.min(70, Math.max(0, +S.bg.dim)) / 100);
+    document.documentElement.style.setProperty('--lobby-k', (S.style.scale || 100) / 100);
+    $('dim').style.setProperty('--lb-dim', Math.min(70, Math.max(0, +S.bg.dim)) / 100);
     var t = $('title'); t.textContent = S.mainTitle.text || ''; show(t, S.mainTitle.show && !!S.mainTitle.text);
     var c = $('corner'); c.textContent = S.corner.text || ''; show(c, S.corner.show && !!S.corner.text);
     fitTitle(); renderLogo(); renderInfo(); renderItems(); refreshWeather(false);
